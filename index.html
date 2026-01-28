@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HydroLoop Monitor</title>
-    
+
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/000000/water-element.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
+        type="text/javascript"></script>
 
     <style>
         :root {
-            --primary: #bf00ff; 
+            --primary: #bf00ff;
             --secondary: #ffbf00;
             --uv-color: #9d00ff;
             --teal: #00d2ff;
@@ -32,7 +36,11 @@
             --neon-glow: 0 0 20px #00d2ff, 0 0 40px #00d2ff !important;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Exo 2', sans-serif;
@@ -42,23 +50,28 @@
             overflow: hidden;
             perspective: 1000px;
             transition: background 0.5s ease;
+            touch-action: none;
         }
 
-        /* --- BOOT SEQUENCE LAYERS --- */
+        /* --- BOOT SEQUENCE --- */
         #boot-screen {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: #000;
             z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
             perspective: 800px;
+            overflow: hidden;
         }
 
-        /* Phase 1: The Drop */
         .hydro-drop {
-            width: 20px; height: 20px;
+            width: 20px;
+            height: 20px;
             background: #fff;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg) translateY(-600px) scale(1);
@@ -67,23 +80,35 @@
         }
 
         @keyframes dropFall {
-            0% { transform: rotate(-45deg) translateY(-600px) scale(1.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: rotate(-45deg) translateY(0) scale(0.5); opacity: 1; }
+            0% {
+                transform: rotate(-45deg) translateY(-600px) scale(1.5);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(-45deg) translateY(0) scale(0.5);
+                opacity: 1;
+            }
         }
 
-        /* Phase 2: The Grid */
         .hex-grid-container {
             display: none;
-            width: 600px; height: 600px;
+            width: 600px;
+            height: 600px;
             position: absolute;
-            transform: rotateX(60deg) scale(0.1); 
+            transform: rotateX(60deg) scale(0.1);
             transform-style: preserve-3d;
             animation: gridExpand 0.2s ease-out forwards;
         }
 
         @keyframes gridExpand {
-            to { transform: rotateX(60deg) scale(1); }
+            to {
+                transform: rotateX(60deg) scale(1);
+            }
         }
 
         .hex-row {
@@ -93,7 +118,8 @@
         }
 
         .hex {
-            width: 40px; height: 44px;
+            width: 40px;
+            height: 44px;
             background: #222;
             margin: 0 2px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -105,20 +131,29 @@
             box-shadow: var(--teal-glow);
         }
 
-        /* Laser Scan */
         .scan-laser {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 5px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
             background: #fff;
             box-shadow: 0 0 20px #fff;
             opacity: 0;
             animation: laserSweep 1.5s linear forwards;
-            animation-delay: 0.2s; 
+            animation-delay: 0.2s;
         }
 
         @keyframes laserSweep {
-            0% { top: -20%; opacity: 1; }
-            100% { top: 120%; opacity: 1; }
+            0% {
+                top: -20%;
+                opacity: 1;
+            }
+
+            100% {
+                top: 120%;
+                opacity: 1;
+            }
         }
 
         .boot-text {
@@ -128,9 +163,9 @@
             font-size: 1.2rem;
             text-shadow: var(--teal-glow);
             opacity: 0;
+            white-space: nowrap;
         }
 
-        /* --- PHASE 3: LIQUEFY --- */
         .liquefy {
             filter: blur(20px);
             transform: scale(2);
@@ -141,87 +176,160 @@
         /* --- UI OVERLAYS --- */
         .glitch-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.2);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.2);
             z-index: 998;
             pointer-events: none;
             opacity: 0;
             display: none;
         }
-        
+
         @keyframes glitch-anim {
-            0% { transform: translate(0); }
-            20% { transform: translate(-10px, 10px); filter: hue-rotate(90deg); }
-            40% { transform: translate(10px, -10px); filter: hue-rotate(-90deg); }
-            60% { transform: translate(-10px, 0); filter: invert(1); }
-            100% { transform: translate(0); }
+            0% {
+                transform: translate(0);
+            }
+
+            20% {
+                transform: translate(-10px, 10px);
+                filter: hue-rotate(90deg);
+            }
+
+            40% {
+                transform: translate(10px, -10px);
+                filter: hue-rotate(-90deg);
+            }
+
+            60% {
+                transform: translate(-10px, 0);
+                filter: invert(1);
+            }
+
+            100% {
+                transform: translate(0);
+            }
         }
 
-        .system-glitch { animation: glitch-anim 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite; }
+        .system-glitch {
+            animation: glitch-anim 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+        }
 
-        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; top: 0; left: 0; }
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            top: 0;
+            left: 0;
+        }
 
-        /* --- NAVBAR & TITLE --- */
+        /* --- NAVBAR --- */
         .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 5%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(15px);
-            position: fixed; width: 100%; top: 0; z-index: 100;
-            border-bottom: 1px solid var(--glass-border); height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+            height: 80px;
+            transition: all 0.3s ease;
         }
 
         .back-btn {
-            text-decoration: none; color: var(--primary); font-weight: 700; font-size: 1.1rem;
-            display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
         }
-        .back-btn:hover { text-shadow: var(--neon-glow); transform: translateX(-5px); }
 
-        .logo-container { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; }
-        
-        /* UPDATED NEON TITLE */
-        .logo { 
-            font-family: 'Rajdhani', sans-serif; 
-            font-size: 2rem; 
-            letter-spacing: 2px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
+        .logo-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
             color: #fff;
-            text-shadow: 
-                0 0 10px var(--primary),
-                0 0 20px var(--primary),
-                0 0 40px var(--primary),
-                0 0 80px var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 80px var(--primary);
             transition: text-shadow 0.5s ease;
         }
-        
+
         .theme-emqx .logo {
-             text-shadow: 
-                0 0 10px #00d2ff,
-                0 0 20px #00d2ff,
-                0 0 40px #00d2ff,
-                0 0 80px #00d2ff;
+            text-shadow: 0 0 10px #00d2ff, 0 0 20px #00d2ff, 0 0 40px #00d2ff, 0 0 80px #00d2ff;
         }
 
-        .broker-container { display: flex; align-items: center; gap: 15px; }
+        .broker-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
         .broker-switch {
-            display: flex; align-items: center; gap: 10px;
-            background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 4px;
-            border: 1px solid var(--glass-border); cursor: pointer; transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .broker-switch:hover { border-color: var(--primary); box-shadow: var(--neon-glow); }
-        .switch-label { font-size: 0.9rem; font-weight: 700; color: #fff; }
-        .switch-indicator { font-size: 0.7rem; color: var(--text-dim); }
+
+        .broker-switch:hover {
+            border-color: var(--primary);
+            box-shadow: var(--neon-glow);
+        }
+
+        .switch-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .switch-indicator {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
 
         /* --- CONVEYOR BELT --- */
         .belt-container {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 500px;
-            transform: translateY(-40%); display: flex; align-items: center;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 500px;
+            transform: translateY(-40%);
+            display: flex;
+            align-items: center;
             overflow: visible;
         }
 
         .track {
-            display: flex; gap: 100px;
-            padding-left: 50vw; padding-right: 50vw;
+            display: flex;
+            gap: 100px;
+            /* Desktop Gap */
+            padding-left: 50vw;
+            padding-right: 50vw;
             transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
         }
@@ -231,64 +339,258 @@
         }
 
         .process-card {
-            min-width: 300px; height: 350px;
-            background: var(--glass); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 30px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; backdrop-filter: blur(10px);
-            transition: all 0.5s ease; opacity: 0.4; transform: scale(0.8);
-            position: relative; flex-shrink: 0;
+            min-width: 300px;
+            height: 350px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+            opacity: 0.4;
+            transform: scale(0.8);
+            position: relative;
+            flex-shrink: 0;
         }
 
         .process-card.active {
-            opacity: 1; transform: scale(1.3); border-color: var(--primary);
-            box-shadow: var(--neon-glow); z-index: 10; background: rgba(30, 30, 40, 0.8);
+            opacity: 1;
+            transform: scale(1.3);
+            border-color: var(--primary);
+            box-shadow: var(--neon-glow);
+            z-index: 10;
+            background: rgba(30, 30, 40, 0.8);
         }
 
-        .process-card.uv-card.active { border-color: var(--uv-color); box-shadow: var(--uv-glow); }
+        .process-card.uv-card.active {
+            border-color: var(--uv-color);
+            box-shadow: var(--uv-glow);
+        }
 
-        .card-icon { font-size: 3.5rem; margin-bottom: 20px; color: var(--text-dim); transition: 0.3s; }
-        .process-card.active .card-icon { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-        .process-card.uv-card.active .card-icon { color: var(--uv-color); text-shadow: 0 0 15px var(--uv-color); }
-        
-        .card-title { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; }
-        .scrambling { color: var(--primary); font-family: 'Courier New', monospace; }
-        .card-desc { font-size: 0.9rem; color: #ddd; line-height: 1.6; }
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            transition: 0.3s;
+        }
 
-        .status-overlay { position: absolute; top: 120px; width: 100%; text-align: center; z-index: 50; }
+        .process-card.active .card-icon {
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary);
+        }
+
+        .process-card.uv-card.active .card-icon {
+            color: var(--uv-color);
+            text-shadow: 0 0 15px var(--uv-color);
+        }
+
+        .card-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .scrambling {
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #ddd;
+            line-height: 1.6;
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 120px;
+            width: 100%;
+            text-align: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
         .main-status-text {
-            font-family: 'Rajdhani', sans-serif; font-size: 2.5rem; font-weight: 700; color: #fff;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5); letter-spacing: 3px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            letter-spacing: 3px;
         }
 
-        .footer { position: fixed; bottom: 20px; width: 100%; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
-        
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
         .spinner {
-            display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%; border-top-color: var(--primary);
-            animation: spin 0.8s ease-in-out infinite; margin-left: 10px; display: none;
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-left: 10px;
+            display: none;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- MOBILE RESPONSIVE TWEAKS (AGGRESSIVE RESIZING) --- */
         @media (max-width: 768px) {
-            .belt-container { transform: translateY(-30%); }
-            .process-card { min-width: 260px; height: 320px; }
-            .process-card.active { transform: scale(1.1); }
-            .main-status-text { font-size: 1.8rem; }
-            .track { gap: 40px; }
-            .logo { font-size: 1.4rem; }
+
+            /* Navbar Adjustments */
+            .navbar {
+                padding: 10px 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+                height: auto;
+                min-height: 80px;
+            }
+
+            .logo-container {
+                position: relative;
+                left: auto;
+                transform: none;
+                width: 100%;
+                order: 1;
+                margin-bottom: 10px;
+            }
+
+            .back-btn {
+                order: 2;
+                position: absolute;
+                left: 15px;
+                top: 15px;
+                font-size: 0.8rem;
+            }
+
+            .broker-container {
+                order: 3;
+                position: absolute;
+                right: 15px;
+                top: 10px;
+            }
+
+            .broker-switch {
+                padding: 4px 8px;
+            }
+
+            .switch-label {
+                display: none;
+            }
+
+            /* Hide full text on small screens */
+            .switch-indicator {
+                font-size: 0.5rem;
+            }
+
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            /* Belt & Card Adjustments */
+            .belt-container {
+                transform: translateY(-20%);
+                height: 350px;
+            }
+
+            .track {
+                gap: 20px;
+            }
+
+            /* Tighter gap for mobile */
+
+            /* Card Scaling: Use VW to ensure fit */
+            .process-card {
+                width: 65vw;
+                /* Fixed 65% of screen width */
+                min-width: unset;
+                /* Remove pixel min */
+                max-width: 250px;
+                /* Cap size */
+                height: 300px;
+                padding: 15px;
+            }
+
+            /* Reduced Pop Scale for Mobile */
+            .process-card.active {
+                transform: scale(1.1);
+            }
+
+            .card-icon {
+                font-size: 2.2rem;
+                margin-bottom: 10px;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+            }
+
+            .card-desc {
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+
+            /* Text Sizes */
+            .status-overlay {
+                top: 140px;
+            }
+
+            .main-status-text {
+                font-size: 1.2rem;
+            }
+
+            .footer {
+                font-size: 0.6rem;
+                bottom: 5px;
+            }
+
+            /* Boot Sequence Mobile */
+            .hex-grid-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .hex {
+                width: 25px;
+                height: 28px;
+                margin: 0 1px;
+            }
+
+            .boot-text {
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
+
 <body id="mainBody">
 
     <div id="boot-screen">
         <div id="phase-1-drop" class="hydro-drop"></div>
-        
         <div id="phase-2-grid" class="hex-grid-container">
             <div class="scan-laser"></div>
         </div>
-
         <div id="boot-text-layer" style="position: absolute; width: 100%; height: 100%; pointer-events: none;"></div>
     </div>
 
@@ -296,17 +598,17 @@
     <div id="particles-js"></div>
 
     <nav class="navbar">
+        <div class="logo-container">
+            <div class="logo">HydroLoop</div>
+        </div>
         <a href="https://dark77ness.github.io/EnviroTri_MeshGrid/hydro.html" class="back-btn">
             <i class="fas fa-chevron-left"></i> BACK
         </a>
-        <div class="logo-container">
-            <div class="logo">HydroLoop Monitor</div>
-        </div>
         <div class="broker-container">
             <div class="broker-switch" onclick="initiateHandover()">
                 <div>
-                    <div class="switch-indicator">DATA UPLINK</div>
-                    <div class="switch-label" id="broker-label">HIVEMQ</div>
+                    <div class="switch-indicator">UPLINK</div>
+                    <div class="switch-label" id="broker-label">HIVE</div>
                 </div>
                 <i class="fas fa-satellite-dish" style="color: var(--primary)"></i>
                 <div class="spinner" id="connSpinner"></div>
@@ -319,8 +621,7 @@
     </div>
 
     <div class="belt-container">
-        <div class="track" id="processTrack">
-            </div>
+        <div class="track" id="processTrack"></div>
     </div>
 
     <div class="footer">
@@ -329,21 +630,10 @@
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // --- FIXED CONFIG: SECURE WSS PORTS ---
         const CONFIG = {
-            hive: { 
-                host: "broker.hivemq.com", 
-                port: 8884, // FIXED: Secure Port
-                path: "/mqtt", 
-                theme: "default" 
-            },
-            emqx: { 
-                host: "broker.emqx.io", 
-                port: 8084, // FIXED: Secure Port
-                path: "/mqtt", 
-                theme: "theme-emqx" 
-            },
-            topicState: "hydroloop/bibartan26/state", 
+            hive: { host: "broker.hivemq.com", port: 8884, path: "/mqtt", theme: "default" },
+            emqx: { host: "broker.emqx.io", port: 8084, path: "/mqtt", theme: "theme-emqx" },
+            topicState: "hydroloop/bibartan26/state",
             topicStatus: "hydroloop/bibartan26/status"
         };
 
@@ -356,7 +646,7 @@
         ];
 
         let client = null;
-        let currentBrokerKey = 'hive'; 
+        let currentBrokerKey = 'hive';
         let currentStep = 0;
 
         function runBootSequence() {
@@ -366,36 +656,30 @@
             const textLayer = document.getElementById('boot-text-layer');
 
             let hexHTML = '';
-            for(let i=0; i<8; i++) {
+            for (let i = 0; i < 8; i++) {
                 hexHTML += '<div class="hex-row">';
-                for(let j=0; j<8; j++) hexHTML += '<div class="hex"></div>';
+                for (let j = 0; j < 8; j++) hexHTML += '<div class="hex"></div>';
                 hexHTML += '</div>';
             }
-            grid.innerHTML += hexHTML; 
+            grid.innerHTML += hexHTML;
 
             setTimeout(() => {
-                drop.style.display = 'none'; 
-                grid.style.display = 'block'; 
-                
+                drop.style.display = 'none';
+                grid.style.display = 'block';
                 const hexes = document.querySelectorAll('.hex');
                 hexes.forEach((hex, idx) => {
                     setTimeout(() => hex.classList.add('active'), 200 + (idx * 20));
                 });
 
-                showBootText(textLayer, "SCANNING_PATHOGENS... [CLEAN]", "20%", "30%", 200);
-                showBootText(textLayer, "ANALYZING_PH_LEVELS... [7.2]", "60%", "60%", 800);
-                showBootText(textLayer, "CONDUCTIVITY_CHECK... [PASS]", "30%", "70%", 1400);
+                const isMobile = window.innerWidth < 768;
+                showBootText(textLayer, "SCANNING... [CLEAN]", "20%", isMobile ? "10%" : "30%", 200);
+                showBootText(textLayer, "PH LEVELS... [7.2]", "60%", isMobile ? "20%" : "60%", 800);
+                showBootText(textLayer, "CONDUCTIVITY... [PASS]", "30%", isMobile ? "40%" : "70%", 1400);
 
             }, 1500);
 
-            setTimeout(() => {
-                screen.classList.add('liquefy');
-            }, 3000);
-
-            setTimeout(() => {
-                screen.style.display = 'none';
-                initApp();
-            }, 4000);
+            setTimeout(() => { screen.classList.add('liquefy'); }, 3000);
+            setTimeout(() => { screen.style.display = 'none'; initApp(); }, 4000);
         }
 
         function showBootText(layer, text, top, left, delay) {
@@ -419,8 +703,7 @@
         function generateBelt() {
             const track = document.getElementById('processTrack');
             track.innerHTML = '';
-            
-            for(let set=0; set<5; set++) { 
+            for (let set = 0; set < 5; set++) {
                 cardsData.forEach(c => {
                     const card = document.createElement('div');
                     card.className = `process-card ${c.uv ? 'uv-card' : ''}`;
@@ -437,20 +720,17 @@
 
         function centerBeltOn(stepIndex) {
             if (stepIndex < 1 || stepIndex > 5) stepIndex = 1;
-            
             const track = document.getElementById('processTrack');
             document.querySelectorAll('.process-card').forEach(c => c.classList.remove('active'));
 
-            const targetSet = 2; 
+            const targetSet = 2;
             const activeCard = document.getElementById(`card-set${targetSet}-${stepIndex}`);
-            
-            if(activeCard) {
+
+            if (activeCard) {
                 activeCard.classList.add('active');
-                
                 const screenCenter = window.innerWidth / 2;
                 const cardCenter = activeCard.offsetLeft + (activeCard.offsetWidth / 2);
                 const moveX = screenCenter - cardCenter;
-                
                 track.style.transform = `translateX(${moveX}px)`;
             }
         }
@@ -465,23 +745,23 @@
             body.classList.add('system-glitch');
             glitchOverlay.style.opacity = '1';
 
-            track.classList.add('long-scroll'); 
+            track.classList.add('long-scroll');
             const currentX = getTranslateX(track);
-            const moveAmt = -2500; 
+            const moveAmt = -2500;
             track.style.transform = `translateX(${currentX + moveAmt}px)`;
 
             const oldBroker = currentBrokerKey;
             currentBrokerKey = (currentBrokerKey === 'hive') ? 'emqx' : 'hive';
-            
+
             document.querySelectorAll('.card-title').forEach(t => scrambleText(t));
 
             setTimeout(() => {
                 if (currentBrokerKey === 'emqx') {
                     body.classList.add('theme-emqx');
-                    label.innerText = "EMQX (CYAN)";
+                    label.innerText = "EMQX";
                 } else {
                     body.classList.remove('theme-emqx');
-                    label.innerText = "HIVEMQ (PURPLE)";
+                    label.innerText = "HIVE";
                 }
 
                 body.classList.remove('system-glitch');
@@ -494,7 +774,7 @@
                 if (client && client.isConnected()) client.disconnect();
                 connectMQTT();
 
-            }, 2000); 
+            }, 2000);
         }
 
         function getTranslateX(element) {
@@ -510,25 +790,24 @@
             element.classList.add('scrambling');
             const interval = setInterval(() => {
                 element.innerText = original.split("").map((l, i) => {
-                    if(i < iterations) return original[i];
+                    if (i < iterations) return original[i];
                     return chars[Math.floor(Math.random() * chars.length)]
                 }).join("");
-                if(iterations >= original.length) { 
+                if (iterations >= original.length) {
                     clearInterval(interval);
                     element.classList.remove('scrambling');
                 }
-                iterations += 1/2; 
+                iterations += 1 / 2;
             }, 30);
         }
 
-        // --- FIXED MQTT CONNECTION ---
         function connectMQTT() {
             const broker = CONFIG[currentBrokerKey];
             const clientId = "client_" + Math.random().toString(16).substr(2, 8);
             document.getElementById('connSpinner').style.display = "inline-block";
-            
+
             client = new Paho.MQTT.Client(broker.host, broker.port, broker.path, clientId);
-            client.onConnectionLost = (res) => { if(res.errorCode!==0) console.log("Lost"); };
+            client.onConnectionLost = (res) => { if (res.errorCode !== 0) console.log("Lost"); };
             client.onMessageArrived = (msg) => {
                 if (msg.destinationName === CONFIG.topicState) {
                     currentStep = parseInt(msg.payloadString);
@@ -537,20 +816,16 @@
                     document.getElementById('statusText').innerText = msg.payloadString.toUpperCase();
                 }
             };
-
-            // FIXED: useSSL: true is required for GitHub Pages
             client.connect({
                 onSuccess: () => {
-                    console.log("Connected");
                     document.getElementById('connSpinner').style.display = "none";
                     client.subscribe(CONFIG.topicState);
                     client.subscribe(CONFIG.topicStatus);
                 },
                 onFailure: (e) => {
-                    console.log("Failed", e);
                     setTimeout(connectMQTT, 5000);
                 },
-                useSSL: true, // MUST BE TRUE
+                useSSL: true,
                 keepAliveInterval: 30
             });
         }
@@ -577,4 +852,5 @@
 
     </script>
 </body>
+
 </html>
